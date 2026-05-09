@@ -1,0 +1,7 @@
+{
+    "clangd.arguments": [
+        "--compile-commands-dir=out/build/${command:cmake.activeConfigurePresetName}",
+        "--header-insertion=never",
+        "--clang-tidy"
+    ]
+}
