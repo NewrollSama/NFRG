@@ -23,6 +23,7 @@ using namespace scene;
 #include "NFRG/ui/builder/list.hpp"
 #include "NFRG/ui/flex.hpp"
 #include "NFRG/ui/image.hpp"
+#include "NFRG/ui/static_text.hpp"
 #include "NFRG/ui/text.hpp"
 #include "NFRG/util/beatmap_set.hpp"
 
@@ -142,9 +143,8 @@ GameplayScene::GameplayScene(const util::Beatmap& beatmap, util::BeatmapSet* bea
 
     track_highlights_.resize(num_tracks);
 
-    auto title_text = ui::Text::Builder()
-                          .set_content("已暂停")
-                          .set_font_size(48)
+    auto title_text = ui::StaticText::Builder()
+                          .set_content("已暂停", 48)
                           .set_foreground_color({ .r = 255, .g = 255, .b = 255, .a = 255 })
                           .set_align_x(ui::AlignX::center)
                           .build();
@@ -155,8 +155,8 @@ GameplayScene::GameplayScene(const util::Beatmap& beatmap, util::BeatmapSet* bea
                     .set_font_color({ .r = 255, .g = 255, .b = 255, .a = 255 })
                     .set_bg_color({ .r = 0, .g = 0, .b = 0, .a = 0 })
                     .set_hl_color({ .r = 255, .g = 255, .b = 255, .a = 64 })
-                    .set_align_x(ui::AlignX::center)
-                    .set_align_y(ui::AlignY::center)
+                    // .set_align_x(ui::AlignX::center)
+                    // .set_align_y(ui::AlignY::center)
                     .build();
     pause_list_ = list.get();
 
@@ -166,6 +166,8 @@ GameplayScene::GameplayScene(const util::Beatmap& beatmap, util::BeatmapSet* bea
                        .set_bound({ .x = 0, .y = 0, .w = static_cast<float>(mgr::Video::width), .h = static_cast<float>(mgr::Video::height) })
                        .add_component(std::move(title_text))
                        .add_component(std::move(list))
+                       .set_align_x(ui::AlignX::center)
+                       .set_align_y(ui::AlignY::center)
                        .build();
     pause_overlay_ = std::move(overlay);
 
