@@ -23,6 +23,7 @@ using namespace scene;
 #include "NFRG/ui/image.hpp"
 #include "NFRG/ui/select/beatmap_set.hpp"
 
+#include <algorithm>
 #include <format>
 
 auto load_beatmapsets(std::vector<std::unique_ptr<util::BeatmapSet>>& beatmapsets,
@@ -130,9 +131,23 @@ SelectScene::SelectScene() {
 }
 
 auto SelectScene::import_beatmapset(std::string&& beatmapset_path) -> std::string {
-    platform::SHA256Calculator calc;
+#ifdef WIN32
+    std::string path_ansi{ platform::utf8_to_ansi(beatmapset_path) };
+    std::ifstream ifs(path_ansi, std::ios::binary | std::ios::in);
+#else
     std::ifstream ifs(beatmapset_path, std::ios::binary | std::ios::in);
+#endif
+    constexpr std::array<char, 4> magic{ 'N', 'F', 'R', 'G' };
+    std::array<char, 4> actual;
+    ifs.read(actual.data(), actual.size());
+    if (!std::ranges::equal(magic, actual)) {
+        SDL_Log("File is probably not a beatmapset.");
+        return "";
+    }
+
+    platform::SHA256Calculator calc;
     std::array<char, 8192> buffer;
+    ifs.seekg(0, std::ios::beg);
     while (ifs.read(buffer.data(), buffer.size()) || ifs.gcount() > 0) {
         calc.update(buffer.data(), buffer.size());
     }
@@ -142,6 +157,7 @@ auto SelectScene::import_beatmapset(std::string&& beatmapset_path) -> std::strin
     if (res) {
         return hash;
     } else {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to import beatmapset: %s", SDL_GetError());
         return "";
     }
 }
@@ -164,12 +180,10 @@ void SelectScene::handle_key_event(SDL_KeyboardEvent& event) {
                 for (; *filelist != nullptr; ++filelist) {
                     SDL_Log("File name: %s", *filelist);
                     hash = scene.import_beatmapset(*filelist);
-                    if (hash.empty()) {
-                        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "%s", SDL_GetError());
-                    }
                 }
-                SDL_Log("Imported");
-                scene.reload_focus = std::move(hash);
+                if (!hash.empty()) {
+                    scene.reload_focus = std::move(hash);
+                }
             },
                 this, mgr::Video::window, filters.data(), static_cast<int>(filters.size()), nullptr, false);
         }
