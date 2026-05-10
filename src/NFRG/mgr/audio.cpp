@@ -169,6 +169,7 @@ auto Audio::open_audio() -> bool {
 }
 
 void Audio::close_audio() {
+    clear_bg();
     SDL_DestroyAudioStream(audio_stream_bg);
     SDL_DestroyAudioStream(audio_stream_se);
     SDL_CloseAudioDevice(audio_device);
